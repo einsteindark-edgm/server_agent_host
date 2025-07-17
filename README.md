@@ -2,6 +2,115 @@
 
 Orchestrator agent that coordinates queries about imports and invoices using the A2A protocol.
 
+## Architecture Diagrams
+
+### Component Diagram
+
+```mermaid
+graph TB
+    subgraph "Host Agent System"
+        HA[Host Agent Orchestrator<br/>Port: 8000]
+        VA[Verification Agent<br/>Using Gemini AI]
+        RC[Remote Agent Connection<br/>A2A Client]
+        OT[Orchestration Tools]
+    end
+
+    subgraph "External Agents"
+        IA[Invoice Extraction Agent<br/>Port: 8005]
+        CA[Colombian Import Specialist<br/>Port: 8006]
+    end
+
+    subgraph "AI Services"
+        GV[Google Vertex AI<br/>Gemini Model]
+    end
+
+    U[User] -->|Query| HA
+    HA --> VA
+    HA --> RC
+    HA --> OT
+    RC -->|A2A Protocol| IA
+    RC -->|A2A Protocol| CA
+    VA -->|Verify Response| GV
+    
+    style HA fill:#f9f,stroke:#333,stroke-width:4px
+    style VA fill:#bbf,stroke:#333,stroke-width:2px
+    style U fill:#dfd,stroke:#333,stroke-width:2px
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant HA as Host Agent
+    participant VA as Verification Agent
+    participant IA as Invoice Agent
+    participant CA as Import Agent
+    participant AI as Gemini AI
+
+    U->>HA: Query about invoice/import
+    HA->>HA: Analyze query keywords
+    
+    alt Invoice Query
+        HA->>IA: send_message(task)
+        IA->>IA: Process invoice data
+        IA-->>HA: Return structured data
+    else Import Query
+        HA->>CA: send_message(task)
+        CA->>CA: Process import info
+        CA-->>HA: Return import details
+    end
+    
+    HA->>VA: verify_response(query, response)
+    VA->>AI: Analyze safety & relevance
+    AI-->>VA: Verification result
+    VA-->>HA: {is_safe, is_relevant, risk_level}
+    
+    alt Response is safe and relevant
+        HA->>U: ✅ Present verified response
+    else Response has issues
+        HA->>U: 🚨 Show security alert
+    end
+```
+
+### Data Flow Diagram
+
+```mermaid
+graph LR
+    subgraph "Input Processing"
+        Q[User Query] --> KA[Keyword Analysis]
+        KA --> RT{Route Decision}
+    end
+    
+    subgraph "Agent Communication"
+        RT -->|Invoice Keywords| IAC[Invoice Agent Call]
+        RT -->|Import Keywords| CAC[Import Agent Call]
+        IAC --> RP1[Response Parser]
+        CAC --> RP2[Response Parser]
+    end
+    
+    subgraph "Verification Layer"
+        RP1 --> VE[Verification Engine]
+        RP2 --> VE
+        VE --> SEC{Security Check}
+        VE --> REL{Relevance Check}
+    end
+    
+    subgraph "Output Generation"
+        SEC -->|Pass| FMT[Format Response]
+        REL -->|Pass| FMT
+        SEC -->|Fail| ALERT[Security Alert]
+        REL -->|Fail| WARN[Warning Message]
+        FMT --> OUT[Final Output]
+        ALERT --> OUT
+        WARN --> OUT
+    end
+    
+    style VE fill:#bbf,stroke:#333,stroke-width:2px
+    style SEC fill:#fbb,stroke:#333,stroke-width:2px
+    style REL fill:#fbf,stroke:#333,stroke-width:2px
+```
+
 ## Description
 
 This Host Agent acts as a central orchestrator that:
