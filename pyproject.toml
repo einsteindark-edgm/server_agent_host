@@ -1,0 +1,24 @@
+[project]
+name = "host-agent-orchestrator"
+version = "0.1.0"
+description = "Host Agent - Orquestador de agentes especializados en importaciones y facturas"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # ADK & A2A Dependencies
+    "google-adk>=1.2.1",
+    "a2a-sdk>=0.2.11",
+    "nest-asyncio>=1.6.0",
+    "python-dotenv==1.0.1",
+    "uvicorn>=0.34.0",
+    "httpx>=0.27.0",
+    "google-generativeai",
+    "google-genai>=0.1.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["host_agent"]
